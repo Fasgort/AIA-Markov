@@ -58,14 +58,24 @@ class Robot(Hmm):
                         return (x,y)
 
     def make_a_mat(self):
+        ''' Calculate the state transition probability matrix
+        '''
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
         shape = (valid_states, valid_states)
         a_mat = np.zeros((shape[0], shape[1]))
         for state1 in range(valid_states):
             for state2 in range(valid_states):
-                return # not implemented
+                a_mat[state1][state2] = self._get_estate_transition_probability(state1,state2)
         self.a_mat = a_mat
-        
+
+    def make_pi_v(self):
+        ''' Calculate the initial state probability vector
+        '''
+        valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
+        pi_v = np.zeros((valid_states, 1))
+        pi_v += 1/valid_states
+        self.pi_v=pi_v
+
     def make_b_mat(self):
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
         shape = (valid_states, 16) # From 1111(0000), to 2222(1111), NSWE
@@ -105,3 +115,47 @@ class Robot(Hmm):
         np.set_printoptions(threshold=np.inf)
         for x in range(valid_states):
             print(self.b_mat[x])
+
+    def _get_estate_transition_probability(self, state, prev_state):
+        ''' Calculate transition probability between states.
+        Needs map matrix with paths (self.map_mat)
+        Args:
+            state (int) Target state identifier
+            prev_state (int) Start state identifier
+        Returns:
+            (float) Probability of transition between start to target states
+        '''
+        state_pos = self.state_to_coordinates(state)
+        prev_state_pos = self.state_to_coordinates(prev_state)
+
+        valid_adjacents = 4
+        transition_found = False
+
+        if state_pos == prev_state_pos:
+            return 0
+        #N
+        if prev_state_pos[0] <= 0 or self.map_mat[prev_state_pos[0] - 1 ,prev_state_pos[1]] == 1:
+            valid_adjacents -= 1
+        elif state_pos[0] == prev_state_pos[0] - 1:
+            transition_found = True
+        #S
+        if prev_state_pos[0] >= self.map_mat.shape[0] - 1 or self.map_mat[prev_state_pos[0] + 1 ,prev_state_pos[1]] == 1:
+            valid_adjacents -= 1
+        elif not transition_found and state_pos[0] == prev_state_pos[0] + 1:
+            transition_found = True
+        #E
+        if prev_state_pos[1] >= self.map_mat.shape[1] - 1 or self.map_mat[prev_state_pos[0] ,prev_state_pos[1] + 1] == 1:
+            valid_adjacents -= 1
+        elif not transition_found and state_pos[1] == prev_state_pos[1] + 1:
+            transition_found = True
+        #W
+        if prev_state_pos[1] <= 0 or self.map_mat[prev_state_pos[0] ,prev_state_pos[1] - 1] == 1:
+            valid_adjacents -= 1
+        elif not transition_found and state_pos[0] == prev_state_pos[0] - 1:
+            transition_found = True
+
+        if transition_found == True:
+            return 1/valid_adjacents
+        else:
+            return 0
+

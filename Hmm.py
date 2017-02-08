@@ -3,6 +3,8 @@
 import numpy as np
 
 class Hmm:
+
+
 	def get_a_mat(self):
 		return self.a_mat
 
