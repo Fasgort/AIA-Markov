@@ -14,9 +14,11 @@ class Robot(Hmm):
         self.size = size
 
     def get_obstacle_rate(self):
+        # Not implemented
         return self.obstacle_rate
 
     def set_obstacle_rate(self, obstacle_rate):
+        # Not implemented
         self.obstacle_rate = obstacle_rate
 
     def get_map(self):
@@ -39,7 +41,6 @@ class Robot(Hmm):
         self.error = error
 
     def state_to_coordinates(self, state):
-        # Tiene errores
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
         if state > valid_states:
             raise Exception
@@ -89,20 +90,21 @@ class Robot(Hmm):
             if coords_state[1]+1 >= self.size or self.map_mat[coords_state[0]][coords_state[1]+1] == 1:
                 obstacles += 1
             obstacles = str(obstacles)
-            for observation in range(16):
-                probability = 1
-                for n in range(2):
-                    for s in range(2):
-                        for w in range(2):
-                            for e in range(2):
-                                obstacle_check = n*1000 + s*100 + w*10 + e + 1111
-                                obstacle_check = str(obstacle_check)
-                                for c in range(len(obstacle_check)):
-                                    if obstacle_check[c] == obstacles[c]:
-                                        probability *= 1 - self.get_error()
-                                    else:
-                                        probability *= self.get_error()
-                b_mat[state][observation] = probability
+            observation = 0
+            for n in range(2):
+                for s in range(2):
+                    for w in range(2):
+                        for e in range(2):
+                            obstacle_check = n*1000 + s*100 + w*10 + e + 1111
+                            obstacle_check = str(obstacle_check)
+                            probability = 1.0
+                            for c in range(len(obstacle_check)):
+                                if obstacle_check[c] == obstacles[c]:
+                                    probability *= (1 - self.get_error())
+                                else:
+                                    probability *= self.get_error()
+                            b_mat[state][observation] = probability
+                            observation += 1
         self.b_mat = b_mat
         
     def print_b_mat(self):
