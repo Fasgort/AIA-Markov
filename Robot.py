@@ -152,4 +152,42 @@ class Robot(Hmm):
             if transition_found == True:
                 return 1/valid_adjacents
         return 0
+    
+    # observations must give values between 0 (no obstacles) and 15 (NWSE obstacles)
+    def forward(self, time, observations):
+        # Exceptions for senseless arguments
+        if observations is None:
+            raise Exception
+        if time is None or time < 0:
+            raise Exception
+        if len(observations) < time:
+            raise Exception
+        
+        # Generate matrix if they aren't built yet
+        if self.a_mat is None:
+            self.make_a_mat
+        if self.pi_v is None:
+            self.make_pi_v
+        if self.b_mat is None:
+            self.b_mat
+            
+        # Initialization
+        valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
+        shape = (valid_states, time)
+        forward_mat = np.zeros((shape[0], shape[1]))
+        
+        # Step 1
+        for s in range(valid_states):
+            forward_mat[s][0] = self.b_mat[s][observations[0]] * self.pi_v[s]
+            
+        # Next steps
+        if time >= 1:
+            for t in range(1, time):
+                for s in range(valid_states):
+                    accumulated = 0.0
+                    for ss in range(valid_states):
+                        accumulated += (self.a_mat[s][ss] * forward_mat[ss][t-1])
+                    forward_mat[s][t] = self.b_mat[s][observations[t-1]] * accumulated
+        
+        return forward_mat
 
