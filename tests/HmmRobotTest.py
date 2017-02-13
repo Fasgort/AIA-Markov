@@ -97,50 +97,50 @@ class MyTestCase(unittest.TestCase):
         r = Robot()
         r.set_size(size_x)
         r.map_mat = np.array([[0, 0, 1], [1, 0, 0], [0, 0, 0]])
-        self.assertEqual(r._get_estate_transition_probability(0, 0), 0)
-        self.assertEqual(r._get_estate_transition_probability(1, 0), 1)
-        self.assertEqual(r._get_estate_transition_probability(2, 0), 0)
-        self.assertEqual(r._get_estate_transition_probability(3, 0), 0)
-        self.assertEqual(r._get_estate_transition_probability(4, 0), 0)
-        self.assertEqual(r._get_estate_transition_probability(5, 0), 0)
-        self.assertEqual(r._get_estate_transition_probability(6, 0), 0)
-        self.assertEqual(r._get_estate_transition_probability(0, 1), 1 / 2)
-        self.assertEqual(r._get_estate_transition_probability(1, 1), 0)
-        self.assertEqual(r._get_estate_transition_probability(2, 1), 1 / 2)
-        self.assertEqual(r._get_estate_transition_probability(3, 1), 0)
-        self.assertEqual(r._get_estate_transition_probability(4, 1), 0)
-        self.assertEqual(r._get_estate_transition_probability(5, 1), 0)
-        self.assertEqual(r._get_estate_transition_probability(6, 1), 0)
-        self.assertEqual(r._get_estate_transition_probability(0, 2), 0)
-        self.assertEqual(r._get_estate_transition_probability(1, 2), 1 / 3)
-        self.assertEqual(r._get_estate_transition_probability(3, 2), 1 / 3)
-        self.assertEqual(r._get_estate_transition_probability(4, 2), 0)
-        self.assertEqual(r._get_estate_transition_probability(5, 2), 1 / 3)
-        self.assertEqual(r._get_estate_transition_probability(6, 2), 0)
-        self.assertEqual(r._get_estate_transition_probability(0, 3), 0)
-        self.assertEqual(r._get_estate_transition_probability(1, 3), 0)
-        self.assertEqual(r._get_estate_transition_probability(2, 3), 1 / 2)
-        self.assertEqual(r._get_estate_transition_probability(6, 3), 1 / 2)
-        self.assertEqual(r._get_estate_transition_probability(0, 4), 0)
-        self.assertEqual(r._get_estate_transition_probability(1, 4), 0)
-        self.assertEqual(r._get_estate_transition_probability(2, 4), 0)
-        self.assertEqual(r._get_estate_transition_probability(3, 4), 0)
-        self.assertEqual(r._get_estate_transition_probability(4, 4), 0)
-        self.assertEqual(r._get_estate_transition_probability(5, 4), 1)
-        self.assertEqual(r._get_estate_transition_probability(6, 4), 0)
-        self.assertEqual(r._get_estate_transition_probability(0, 5), 0)
-        self.assertEqual(r._get_estate_transition_probability(1, 5), 0)
-        self.assertEqual(r._get_estate_transition_probability(2, 5), 1 / 3)
-        self.assertEqual(r._get_estate_transition_probability(3, 5), 0)
-        self.assertEqual(r._get_estate_transition_probability(4, 5), 1 / 3)
-        self.assertEqual(r._get_estate_transition_probability(5, 5), 0)
-        self.assertEqual(r._get_estate_transition_probability(0, 6), 0)
-        self.assertEqual(r._get_estate_transition_probability(1, 6), 0)
-        self.assertEqual(r._get_estate_transition_probability(2, 6), 0)
-        self.assertEqual(r._get_estate_transition_probability(3, 6), 1 / 2)
-        self.assertEqual(r._get_estate_transition_probability(4, 6), 0)
-        self.assertEqual(r._get_estate_transition_probability(5, 6), 1 / 2)
-        self.assertEqual(r._get_estate_transition_probability(6, 6), 0)
+        self.assertEqual(r._get_state_transition_probability(0, 0), 0)
+        self.assertEqual(r._get_state_transition_probability(1, 0), 1)
+        self.assertEqual(r._get_state_transition_probability(2, 0), 0)
+        self.assertEqual(r._get_state_transition_probability(3, 0), 0)
+        self.assertEqual(r._get_state_transition_probability(4, 0), 0)
+        self.assertEqual(r._get_state_transition_probability(5, 0), 0)
+        self.assertEqual(r._get_state_transition_probability(6, 0), 0)
+        self.assertEqual(r._get_state_transition_probability(0, 1), 1 / 2)
+        self.assertEqual(r._get_state_transition_probability(1, 1), 0)
+        self.assertEqual(r._get_state_transition_probability(2, 1), 1 / 2)
+        self.assertEqual(r._get_state_transition_probability(3, 1), 0)
+        self.assertEqual(r._get_state_transition_probability(4, 1), 0)
+        self.assertEqual(r._get_state_transition_probability(5, 1), 0)
+        self.assertEqual(r._get_state_transition_probability(6, 1), 0)
+        self.assertEqual(r._get_state_transition_probability(0, 2), 0)
+        self.assertEqual(r._get_state_transition_probability(1, 2), 1 / 3)
+        self.assertEqual(r._get_state_transition_probability(3, 2), 1 / 3)
+        self.assertEqual(r._get_state_transition_probability(4, 2), 0)
+        self.assertEqual(r._get_state_transition_probability(5, 2), 1 / 3)
+        self.assertEqual(r._get_state_transition_probability(6, 2), 0)
+        self.assertEqual(r._get_state_transition_probability(0, 3), 0)
+        self.assertEqual(r._get_state_transition_probability(1, 3), 0)
+        self.assertEqual(r._get_state_transition_probability(2, 3), 1 / 2)
+        self.assertEqual(r._get_state_transition_probability(6, 3), 1 / 2)
+        self.assertEqual(r._get_state_transition_probability(0, 4), 0)
+        self.assertEqual(r._get_state_transition_probability(1, 4), 0)
+        self.assertEqual(r._get_state_transition_probability(2, 4), 0)
+        self.assertEqual(r._get_state_transition_probability(3, 4), 0)
+        self.assertEqual(r._get_state_transition_probability(4, 4), 0)
+        self.assertEqual(r._get_state_transition_probability(5, 4), 1)
+        self.assertEqual(r._get_state_transition_probability(6, 4), 0)
+        self.assertEqual(r._get_state_transition_probability(0, 5), 0)
+        self.assertEqual(r._get_state_transition_probability(1, 5), 0)
+        self.assertEqual(r._get_state_transition_probability(2, 5), 1 / 3)
+        self.assertEqual(r._get_state_transition_probability(3, 5), 0)
+        self.assertEqual(r._get_state_transition_probability(4, 5), 1 / 3)
+        self.assertEqual(r._get_state_transition_probability(5, 5), 0)
+        self.assertEqual(r._get_state_transition_probability(0, 6), 0)
+        self.assertEqual(r._get_state_transition_probability(1, 6), 0)
+        self.assertEqual(r._get_state_transition_probability(2, 6), 0)
+        self.assertEqual(r._get_state_transition_probability(3, 6), 1 / 2)
+        self.assertEqual(r._get_state_transition_probability(4, 6), 0)
+        self.assertEqual(r._get_state_transition_probability(5, 6), 1 / 2)
+        self.assertEqual(r._get_state_transition_probability(6, 6), 0)
 
     def test_generate_sample(self):
         sample_size = 10
@@ -156,12 +156,76 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(sam_s.size, sample_size)
         self.assertEqual(sam_o.size, sample_size)
         states_count = r.pi_v.size
-        self.assertTrue(all([False for s in sam_s if s < 0 or states_count <= s]))
-        self.assertTrue(all([False for o in sam_o if o < o or self._OBSERVATION_COUNT <= o]))
+        self.assertTrue((0 <= sam_s).all() and (sam_s < states_count).all(),
+                        "States sample contains unknown states: {}".format(sam_s))
+        self.assertTrue((0 <= sam_o).all() and (sam_o < self._OBSERVATION_COUNT).all(),
+                        "Observations sample contains unknown observations: {}".format(sam_o))
         for i in range(sample_size - 1):
-            self.assertTrue(r._get_estate_transition_probability(sam_s[i + 1], sam_s[i]) > 0)
-            self.assertTrue(r._get_estate_transition_probability(sam_s[i + 1], sam_s[i]) <= 1)
-        self.assertTrue(all([False for s in sam_s if s < 0 or states_count <= s]))
+            state_transition_probability = r._get_state_transition_probability(sam_s[i + 1], sam_s[i])
+            self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+
+    def test_generate_sample_variable_sample_size(self):
+        size_x = 5
+        r = Robot()
+        r.set_size(size_x)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_a_mat()
+        r.make_pi_v()
+        r.make_b_mat()
+        for sample_size in range(1, 10):
+            sam_s, sam_o = r.generate_sample(sample_size)
+            self.assertEqual(sam_s.size, sample_size)
+            self.assertEqual(sam_o.size, sample_size)
+            states_count = r.pi_v.size
+            self.assertTrue((0 <= sam_s).all() and (sam_s < states_count).all(),
+                            "States sample contains unknown states: {}".format(sam_s))
+            self.assertTrue((0 <= sam_o).all() and (sam_o < self._OBSERVATION_COUNT).all(),
+                            "Observations sample contains unknown observations: {}".format(sam_o))
+            for i in range(sample_size - 1):
+                state_transition_probability = r._get_state_transition_probability(sam_s[i + 1], sam_s[i])
+                self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+
+    def test_viterbi(self):
+        sample_size = 3
+        size_x = 5
+        r = Robot()
+        r.set_size(size_x)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_a_mat()
+        r.make_pi_v()
+        r.make_b_mat()
+        sam_s, sam_o = r.generate_sample(sample_size)
+        viterbi_s_seq = r.viterbi(sam_o)
+        self.assertEqual(viterbi_s_seq.size, sample_size)
+        states_count = r.pi_v.size
+        self.assertTrue((0 <= viterbi_s_seq).all() and (viterbi_s_seq < states_count).all(),
+                        "States sequence contains unknown states: {}".format(sam_s))
+        for i in range(sample_size - 1):
+            state_transition_probability = r._get_state_transition_probability(viterbi_s_seq[i + 1], viterbi_s_seq[i])
+            self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+
+    def test_viterbi_variable_sample_size(self):
+        size_x = 10
+        r = Robot()
+        r.set_size(size_x)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_a_mat()
+        r.make_pi_v()
+        r.make_b_mat()
+        for sample_size in range(1, 10):
+            sam_s, sam_o = r.generate_sample(sample_size)
+            viterbi_s_seq = r.viterbi(sam_o)
+            self.assertEqual(viterbi_s_seq.size, sample_size)
+            states_count = r.pi_v.size
+            self.assertTrue((0 <= viterbi_s_seq).all() and (viterbi_s_seq < states_count).all(),
+                            "States sequence contains unknown states: {}".format(sam_s))
+            for i in range(sample_size - 1):
+                state_transition_probability = r._get_state_transition_probability(viterbi_s_seq[i + 1],
+                                                                                   viterbi_s_seq[i])
+                self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
 
 
 if __name__ == '__main__':

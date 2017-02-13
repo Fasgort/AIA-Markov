@@ -57,26 +57,34 @@ class Robot(Hmm):
                         state_countdown -= 1
 
     def make_a_mat(self):
-        ''' Calculate the state transition probability matrix
+        """ Calculate the state transition probability matrix
 
         .. warning:: Generate map before using it
-        '''
+        """
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
         shape = (valid_states, valid_states)
         a_mat = np.zeros((shape[0], shape[1]))
-        for state1 in range(valid_states):
-            for state2 in range(valid_states):
-                a_mat[state1][state2] = self._get_estate_transition_probability(state1, state2)
+        for state2 in range(valid_states):
+            for state1 in range(valid_states):
+                a_mat[state1][state2] = self._get_state_transition_probability(state1, state2)
+            # The correction done below is to eliminate rounding error
+            a_mat[valid_states - 1][state2] -= (a_mat[:,state2].sum() - 1.0)
+            if a_mat[:,state2].sum() != 1.0:
+                raise Exception("Unable to generate A matrix: from_state:{} state_transition={} accumulated_probability={}".format(state2, a_mat[:,state2], a_mat[:,state2].sum()))
         self.a_mat = a_mat
 
     def make_pi_v(self):
-        ''' Calculate the initial state probability vector
+        """ Calculate the initial state probability vector
 
         .. warning:: Generate map before using it
-        '''
+        """
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
         pi_v = np.zeros((valid_states, 1))
-        pi_v += 1 / valid_states
+        pi_v += 1.0 / valid_states
+        # The correction done below is to eliminate rounding error
+        pi_v[valid_states - 1] -= (pi_v.sum() - 1.0)
+        if pi_v.sum() != 1.0:
+            raise Exception("Unable to generate Pi vector: pi_v={} accumulated probability={}".format(pi_v, pi_v.sum()))
         self.pi_v = pi_v
 
     def make_b_mat(self):
@@ -118,15 +126,15 @@ class Robot(Hmm):
         for x in range(valid_states):
             print(self.b_mat[x])
 
-    def _get_estate_transition_probability(self, state, prev_state):
-        ''' Calculate transition probability between states.
+    def _get_state_transition_probability(self, state, prev_state):
+        """ Calculate transition probability between states.
         Needs map matrix with paths (self.map_mat)
         Args:
             state (int) Target state identifier
             prev_state (int) Start state identifier
         Returns:
             (float) Probability of transition between start to target states
-        '''
+        """
         state_pos = self.state_to_coordinates(state)
         prev_state_pos = self.state_to_coordinates(prev_state)
 
@@ -152,23 +160,23 @@ class Robot(Hmm):
                 transition_found = True
             # E
             if prev_state_pos[1] >= self.map_mat.shape[1] - 1 or self.map_mat[
-                prev_state_pos[0], prev_state_pos[1] + 1] == 1:
+                    prev_state_pos[0], prev_state_pos[1] + 1] == 1:
                 valid_adjacents -= 1
             elif not transition_found and state_pos[1] == prev_state_pos[1] + 1:
                 transition_found = True
-            if transition_found == True:
+            if transition_found:
                 return 1 / valid_adjacents
         return 0
 
     def generate_sample(self, size):
-        ''' Generates a sequence of states and its observations for the present system
+        """ Generates a sequence of states and its observations for the present system
 
         :param size: Length of string of states
         :return: Tuple with string of states and observations
 
         .. warning:: size must be greater than 0
             Make A, B and Pi before using it
-        '''
+        """
         if size is None or size < 1:
             raise ValueError("size must be greater than 0")
         valid_states = self.pi_v.shape[0]
@@ -230,3 +238,37 @@ class Robot(Hmm):
                     forward_mat[s][t] = self.b_mat[s][observations[t - 1]] * accumulated
 
         return forward_mat
+
+    def viterbi(self, observations):
+        """ Implements Viterbi algorithm
+
+        Returns the most probable sequence of system states from a system observation sequence
+
+        :param observations: system observations sequence
+        :return: system states sequence
+        """
+        time = observations.size - 1
+        nu, pr = self._viterbi_recursion(observations, time)
+        s_seq = np.array([np.argmax(nu)])
+        for t in range(time, 0, -1):
+            s_seq = np.insert(s_seq, 0, pr[t, s_seq[0]])
+        return s_seq
+
+    def _viterbi_recursion(self, observations, time):
+        valid_states = self.b_mat.shape[0]
+        nu = np.empty(valid_states, dtype=float)
+
+        if time == 0:
+            pr = np.empty((observations.size, valid_states))
+            for s in range(valid_states):
+                nu[s] = self.b_mat[s, observations[time]] * self.pi_v[s]
+                pr[time, s] = -1
+        else:
+            prev_nu, pr = self._viterbi_recursion(observations, time - 1)
+            for j in range(valid_states):
+                tran_prob = np.empty(valid_states)
+                for i in range(valid_states):
+                    tran_prob[i] = self.a_mat[i, j] * prev_nu[i]
+                nu[j] = self.b_mat[j, observations[time]] * np.amax(tran_prob)
+                pr[time, j] = np.argmax(tran_prob)
+        return nu, pr
