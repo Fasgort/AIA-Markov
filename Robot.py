@@ -43,6 +43,14 @@ class Robot(Hmm):
     def set_error(self, error):
         self.error = error
 
+    def get_valid_states(self):
+        """ Returns valid states count
+
+        :return: current amount of system state
+        .. warning:: Generate map before using it
+        """
+        return self.map_mat.size - np.count_nonzero(self.map_mat)
+
     def state_to_coordinates(self, state):
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
         if state > valid_states:
@@ -68,9 +76,11 @@ class Robot(Hmm):
             for state1 in range(valid_states):
                 a_mat[state1][state2] = self._get_state_transition_probability(state1, state2)
             # The correction done below is to eliminate rounding error
-            a_mat[valid_states - 1][state2] -= (a_mat[:,state2].sum() - 1.0)
-            if a_mat[:,state2].sum() != 1.0:
-                raise Exception("Unable to generate A matrix: from_state:{} state_transition={} accumulated_probability={}".format(state2, a_mat[:,state2], a_mat[:,state2].sum()))
+            a_mat[valid_states - 1][state2] -= (a_mat[:, state2].sum() - 1.0)
+            if a_mat[:, state2].sum() != 1.0:
+                raise Exception(
+                    "Unable to generate A matrix: from_state:{} state_transition={} accumulated_probability={}".format(
+                        state2, a_mat[:, state2], a_mat[:, state2].sum()))
         self.a_mat = a_mat
 
     def make_pi_v(self):
@@ -160,7 +170,7 @@ class Robot(Hmm):
                 transition_found = True
             # E
             if prev_state_pos[1] >= self.map_mat.shape[1] - 1 or self.map_mat[
-                    prev_state_pos[0], prev_state_pos[1] + 1] == 1:
+                prev_state_pos[0], prev_state_pos[1] + 1] == 1:
                 valid_adjacents -= 1
             elif not transition_found and state_pos[1] == prev_state_pos[1] + 1:
                 transition_found = True
@@ -245,7 +255,7 @@ class Robot(Hmm):
         Returns the most probable sequence of system states from a system observation sequence
 
         :param observations: system observations sequence
-        :return: system states sequence
+        :return: system state estimated sequence
         """
         time = observations.size - 1
         nu, pr = self._viterbi_recursion(observations, time)
@@ -272,3 +282,40 @@ class Robot(Hmm):
                 nu[j] = self.b_mat[j, observations[time]] * np.amax(tran_prob)
                 pr[time, j] = np.argmax(tran_prob)
         return nu, pr
+
+    def forward_error(self, state, estimated_state):
+        """ Calculates error in forward estimated state
+
+        :param state: original system state
+        :param estimated_state: estimated state
+        :return: manhattan distance between original and estimated state
+        """
+        if state < 0 or state > self.get_valid_states():
+            raise ValueError(
+                "given state is not valid, must be in [0,{}]: state={}".format(self.get_valid_states(), state))
+        if estimated_state < 0 or estimated_state > self.get_valid_states():
+            raise ValueError(
+                "given estimated state is not valid, must be in [0,{}]: estimated_state={}".format(
+                    self.get_valid_states(), estimated_state))
+        s_coordinates = self.state_to_coordinates(state)
+        estimated_s_coordinates = self.state_to_coordinates(estimated_state)
+        return abs(s_coordinates[0] - estimated_s_coordinates[0]) + abs(s_coordinates[1] - estimated_s_coordinates[1])
+
+    @staticmethod
+    def viterbi_error(state_sequence, estimated_state_sequence):
+        """ Calculates error in viterbi estimated sequence
+
+        :param state_sequence: original system state sequence
+        :param estimated_state_sequence: estimated state sequence
+        :return: matching rate between original and estimated state sequences
+        """
+        if state_sequence.size <= 0:
+            return 1
+        elif state_sequence.size != estimated_state_sequence.size:
+            return 0
+        else:
+            matches = 0
+        for i, s in enumerate(state_sequence):
+            if s == estimated_state_sequence[i]:
+                matches += 1
+        return matches / state_sequence.size

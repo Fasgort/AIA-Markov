@@ -227,6 +227,36 @@ class MyTestCase(unittest.TestCase):
                                                                                    viterbi_s_seq[i])
                 self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
 
+    def test_forward_error(self):
+        sample_size = 10
+        size_x = 10
+        r = Robot()
+        r.set_size(size_x)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_a_mat()
+        r.make_pi_v()
+        r.make_b_mat()
+        sam_s, sam_o = r.generate_sample(sample_size)
+        forward_err = r.forward_error(sam_s[0], sam_s[3])
+        self.assertTrue(forward_err >= 0)
+
+    def test_viterbi_error(self):
+        sample_size = 10
+        size_x = 10
+        r = Robot()
+        r.set_size(size_x)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_a_mat()
+        r.make_pi_v()
+        r.make_b_mat()
+        sam_s, sam_o = r.generate_sample(sample_size)
+        viterbi_s_seq = r.viterbi(sam_o)
+        viterbi_err = r.viterbi_error(sam_s, viterbi_s_seq)
+        self.assertTrue(0.0 <= viterbi_err <= 1.0,
+                        "Viterbi estimated sequence error must be in [0,1]: viterbi_err={}".format(viterbi_err))
+
 
 if __name__ == '__main__':
     unittest.main()
