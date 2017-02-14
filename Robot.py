@@ -17,11 +17,9 @@ class Robot(Hmm):
         self.size = size
 
     def get_obstacle_rate(self):
-        # Not implemented
         return self.obstacle_rate
 
     def set_obstacle_rate(self, obstacle_rate):
-        # Not implemented
         self.obstacle_rate = obstacle_rate
 
     def get_map(self):
@@ -31,8 +29,11 @@ class Robot(Hmm):
         self.map_mat = np.zeros((self.size, self.size), dtype=int)
         for x in range(0, self.size):
             for y in range(0, self.size):
-                self.map_mat[x][y] = random.sample([0, 0, 0, 0, 1], 1)[0]
-
+                if random.random() <= self.obstacle_rate:
+                    self.map_mat[x][y] = 1
+                else:
+                    self.map_mat[x][y] = 0                       
+                
     def print_map(self):
         for x in range(0, self.size):
             print(self.map_mat[x])
