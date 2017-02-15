@@ -2,7 +2,9 @@
 
 import random
 
+import PIL
 import numpy as np
+from PIL import Image
 
 from Hmm import Hmm
 
@@ -26,6 +28,11 @@ class Robot(Hmm):
         return self.map_mat
 
     def generate_map(self):
+        """ Build map
+
+        :return: None
+        .. warning:: Set obstacle rate before
+        """
         self.map_mat = np.zeros((self.size, self.size), dtype=int)
         for x in range(0, self.size):
             for y in range(0, self.size):
@@ -93,7 +100,8 @@ class Robot(Hmm):
         pi_v = np.zeros((valid_states, 1))
         pi_v += 1.0 / valid_states
         # The correction done below is to eliminate rounding error
-        pi_v[valid_states - 1] -= (pi_v.sum() - 1.0)
+        if pi_v.sum() != 1.0:
+            pi_v[valid_states - 1] -= (pi_v.sum() - 1.0)
         if pi_v.sum() != 1.0:
             raise Exception("Unable to generate Pi vector: pi_v={} accumulated probability={}".format(pi_v, pi_v.sum()))
         self.pi_v = pi_v
@@ -258,6 +266,8 @@ class Robot(Hmm):
         :param observations: system observations sequence
         :return: system state estimated sequence
         """
+        if (observations < 0).all() or (observations >= self._OBSERVATIONS_COUNT).all():
+            raise ValueError("Given observation sequence contains invalid observation: {}".format(observations))
         time = observations.size - 1
         nu, pr = self._viterbi_recursion(observations, time)
         s_seq = np.array([np.argmax(nu)])
@@ -313,10 +323,24 @@ class Robot(Hmm):
         if state_sequence.size <= 0:
             return 1
         elif state_sequence.size != estimated_state_sequence.size:
-            return 0
-        else:
-            matches = 0
-        for i, s in enumerate(state_sequence):
-            if s == estimated_state_sequence[i]:
-                matches += 1
-        return matches / state_sequence.size
+            return 1
+        matches = np.sum(state_sequence == estimated_state_sequence)
+        return (state_sequence.size - matches) / state_sequence.size
+
+    def make_map_image(self):
+        image_size = 500
+        unit_space_dim = int(image_size/self.get_size())
+        res_image_array = np.empty((self.map_mat.shape[0] * unit_space_dim, self.map_mat.shape[1] * unit_space_dim, 3), dtype=np.uint8)
+        for i in range(self.map_mat.shape[0]):
+            space_i = i * unit_space_dim
+            for j in range(self.map_mat.shape[1]):
+                space_j = j * unit_space_dim
+                for row in range(unit_space_dim):
+                    value_color = 255 if self.map_mat[i, j] == 0 else 0
+                    res_image_array[space_i + row, space_j:space_j + unit_space_dim, :] = value_color
+        self.map_image = Image.fromarray(res_image_array)
+
+    def display_map(self):
+        if not hasattr(self, 'map_image') or self.map_image:
+            self.make_map_image()
+        self.map_image.show()

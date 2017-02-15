@@ -13,21 +13,35 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(r.get_size(), size_x)
 
     def test_obstacle_rate(self):
-        obstacle_rate = 0.05
+        obstacle_rate = 0.25
         r = Robot()
         r.set_obstacle_rate(obstacle_rate)
         self.assertEqual(r.get_obstacle_rate(), obstacle_rate)
 
     def test_error(self):
-        obstacle_rate = 0.05
+        observation_error = 0.05
         r = Robot()
-        r.set_error(obstacle_rate)
-        self.assertEqual(r.get_error(), obstacle_rate)
+        r.set_error(observation_error)
+        self.assertEqual(r.get_error(), observation_error)
 
     def test_generate_map(self):
         size_x = 5
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
+        r.generate_map()
+        map_mat = r.get_map()
+        self.assertEqual(map_mat.shape, (size_x, size_x))
+        spaces_count = np.count_nonzero(map_mat)
+        self.assertGreater(spaces_count, 0)
+
+    def test_generate_map_obstacle_rate(self):
+        size_x = 5
+        obstacle_rate = 0.25
+        r = Robot()
+        r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         map_mat = r.get_map()
         self.assertEqual(map_mat.shape, (size_x, size_x))
@@ -36,8 +50,10 @@ class MyTestCase(unittest.TestCase):
 
     def test_state_to_coordinates(self):
         size_x = 5
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         map_mat = r.get_map()
         current_state = 0
@@ -49,8 +65,10 @@ class MyTestCase(unittest.TestCase):
 
     def test_make_a_mat(self):
         size_x = 3
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_a_mat()
         map_mat = r.get_map()
@@ -68,8 +86,10 @@ class MyTestCase(unittest.TestCase):
 
     def test_make_pi_v(self):
         size_x = 5
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_pi_v()
         map_mat = r.get_map()
@@ -80,9 +100,11 @@ class MyTestCase(unittest.TestCase):
 
     def test_make_b_mat(self):
         size_x = 5
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
         r.set_error(0.05)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_b_mat()
         map_mat = r.get_map()
@@ -94,8 +116,10 @@ class MyTestCase(unittest.TestCase):
 
     def test_estate_transition_probability(self):
         size_x = 3
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.map_mat = np.array([[0, 0, 1], [1, 0, 0], [0, 0, 0]])
         self.assertEqual(r._get_state_transition_probability(0, 0), 0)
         self.assertEqual(r._get_state_transition_probability(1, 0), 1)
@@ -144,10 +168,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_generate_sample(self):
         sample_size = 10
+        obstacle_rate = 0.25
         size_x = 5
         r = Robot()
         r.set_size(size_x)
         r.set_error(0.05)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_a_mat()
         r.make_pi_v()
@@ -162,13 +188,15 @@ class MyTestCase(unittest.TestCase):
                         "Observations sample contains unknown observations: {}".format(sam_o))
         for i in range(sample_size - 1):
             state_transition_probability = r._get_state_transition_probability(sam_s[i + 1], sam_s[i])
-            self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+            self.assertTrue(0 < state_transition_probability <= 1)
 
     def test_generate_sample_variable_sample_size(self):
         size_x = 5
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
         r.set_error(0.05)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_a_mat()
         r.make_pi_v()
@@ -184,14 +212,16 @@ class MyTestCase(unittest.TestCase):
                             "Observations sample contains unknown observations: {}".format(sam_o))
             for i in range(sample_size - 1):
                 state_transition_probability = r._get_state_transition_probability(sam_s[i + 1], sam_s[i])
-                self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+                self.assertTrue(0 < state_transition_probability <= 1)
 
     def test_viterbi(self):
         sample_size = 3
         size_x = 5
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
         r.set_error(0.05)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_a_mat()
         r.make_pi_v()
@@ -204,13 +234,15 @@ class MyTestCase(unittest.TestCase):
                         "States sequence contains unknown states: {}".format(sam_s))
         for i in range(sample_size - 1):
             state_transition_probability = r._get_state_transition_probability(viterbi_s_seq[i + 1], viterbi_s_seq[i])
-            self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+            self.assertTrue(0 < state_transition_probability <= 1)
 
     def test_viterbi_variable_sample_size(self):
         size_x = 10
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
         r.set_error(0.05)
+        r.set_obstacle_rate(obstacle_rate)
         r.generate_map()
         r.make_a_mat()
         r.make_pi_v()
@@ -225,13 +257,15 @@ class MyTestCase(unittest.TestCase):
             for i in range(sample_size - 1):
                 state_transition_probability = r._get_state_transition_probability(viterbi_s_seq[i + 1],
                                                                                    viterbi_s_seq[i])
-                self.assertTrue(0 < state_transition_probability and state_transition_probability <= 1)
+                self.assertTrue(0 < state_transition_probability <= 1)
 
     def test_forward_error(self):
         sample_size = 10
+        obstacle_rate = 0.25
         size_x = 10
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.set_error(0.05)
         r.generate_map()
         r.make_a_mat()
@@ -244,8 +278,10 @@ class MyTestCase(unittest.TestCase):
     def test_viterbi_error(self):
         sample_size = 10
         size_x = 10
+        obstacle_rate = 0.25
         r = Robot()
         r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
         r.set_error(0.05)
         r.generate_map()
         r.make_a_mat()
@@ -256,6 +292,28 @@ class MyTestCase(unittest.TestCase):
         viterbi_err = r.viterbi_error(sam_s, viterbi_s_seq)
         self.assertTrue(0.0 <= viterbi_err <= 1.0,
                         "Viterbi estimated sequence error must be in [0,1]: viterbi_err={}".format(viterbi_err))
+
+    def test_make_map_image(self):
+        size_x = 20
+        obstacle_rate = 0.25
+        r = Robot()
+        r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_map_image()
+        self.assertTrue(hasattr(r, 'map_image'))
+
+    def test_display_map(self):
+        size_x = 20
+        obstacle_rate = 0.25
+        r = Robot()
+        r.set_size(size_x)
+        r.set_obstacle_rate(obstacle_rate)
+        r.set_error(0.05)
+        r.generate_map()
+        r.make_map_image()
+        r.display_map()
 
 
 if __name__ == '__main__':
