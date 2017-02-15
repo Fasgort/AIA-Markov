@@ -221,13 +221,9 @@ class Robot(Hmm):
         return sample_s, sample_o
 
     # observations must give values between 0 (no obstacles) and 15 (NWSE obstacles)
-    def forward(self, time, observations):
+    def forward(self, observations):
         # Exceptions for senseless arguments
         if observations is None:
-            raise Exception
-        if time is None or time < 0:
-            raise Exception
-        if len(observations) < time:
             raise Exception
 
         # Generate matrix if they aren't built yet
@@ -239,13 +235,14 @@ class Robot(Hmm):
             self.b_mat
 
         # Initialization
+        time = len(observations)
         valid_states = self.map_mat.size - np.count_nonzero(self.map_mat)
-        shape = (valid_states, time)
+        shape = (time, valid_states)
         forward_mat = np.zeros((shape[0], shape[1]))
 
         # Step 1
         for s in range(valid_states):
-            forward_mat[s][0] = self.b_mat[s][observations[0]] * self.pi_v[s]
+            forward_mat[0][s] = self.b_mat[s][observations[0]] * self.pi_v[s]
 
         # Next steps
         if time >= 1:
@@ -253,10 +250,13 @@ class Robot(Hmm):
                 for s in range(valid_states):
                     accumulated = 0.0
                     for ss in range(valid_states):
-                        accumulated += (self.a_mat[s][ss] * forward_mat[ss][t - 1])
-                    forward_mat[s][t] = self.b_mat[s][observations[t - 1]] * accumulated
+                        accumulated += (self.a_mat[s][ss] * forward_mat[t - 1][ss])
+                    forward_mat[t][s] = self.b_mat[s][observations[t - 1]] * accumulated
+                               
+        # Returning the most probable state
+        state = max(forward_mat[time-1])
 
-        return forward_mat
+        return state
 
     def viterbi(self, observations):
         """ Implements Viterbi algorithm
