@@ -251,10 +251,10 @@ class Robot(Hmm):
                     accumulated = 0.0
                     for ss in range(valid_states):
                         accumulated += (self.a_mat[s][ss] * forward_mat[t - 1][ss])
-                    forward_mat[t][s] = self.b_mat[s][observations[t - 1]] * accumulated
+                    forward_mat[t][s] = self.b_mat[s][observations[t]] * accumulated
                                
         # Returning the most probable state
-        state = max(forward_mat[time-1])
+        state = np.argmax(forward_mat[time-1])
 
         return state
 
