@@ -2,7 +2,6 @@
 
 import random
 
-import PIL
 import numpy as np
 from PIL import Image
 
@@ -39,8 +38,8 @@ class Robot(Hmm):
                 if random.random() <= self.obstacle_rate:
                     self.map_mat[x][y] = 1
                 else:
-                    self.map_mat[x][y] = 0                       
-                
+                    self.map_mat[x][y] = 0
+
     def print_map(self):
         for x in range(0, self.size):
             print(self.map_mat[x])
@@ -100,8 +99,11 @@ class Robot(Hmm):
         pi_v = np.zeros((valid_states, 1))
         pi_v += 1.0 / valid_states
         # The correction done below is to eliminate rounding error
-        if pi_v.sum() != 1.0:
-            pi_v[valid_states - 1] -= (pi_v.sum() - 1.0)
+        for atepmt in range(5):
+            if pi_v.sum() != 1.0:
+                pi_v[valid_states - 1] -= (pi_v.sum() - 1.0)
+            if pi_v.sum() == 1.0:
+                break
         if pi_v.sum() != 1.0:
             raise Exception("Unable to generate Pi vector: pi_v={} accumulated probability={}".format(pi_v, pi_v.sum()))
         self.pi_v = pi_v
@@ -179,7 +181,7 @@ class Robot(Hmm):
                 transition_found = True
             # E
             if prev_state_pos[1] >= self.map_mat.shape[1] - 1 or self.map_mat[
-                prev_state_pos[0], prev_state_pos[1] + 1] == 1:
+                    prev_state_pos[0], prev_state_pos[1] + 1] == 1:
                 valid_adjacents -= 1
             elif not transition_found and state_pos[1] == prev_state_pos[1] + 1:
                 transition_found = True
@@ -252,9 +254,9 @@ class Robot(Hmm):
                     for ss in range(valid_states):
                         accumulated += (self.a_mat[s][ss] * forward_mat[t - 1][ss])
                     forward_mat[t][s] = self.b_mat[s][observations[t]] * accumulated
-                               
+
         # Returning the most probable state
-        state = np.argmax(forward_mat[time-1])
+        state = np.argmax(forward_mat[time - 1])
 
         return state
 
@@ -329,8 +331,9 @@ class Robot(Hmm):
 
     def make_map_image(self):
         image_size = 500
-        unit_space_dim = int(image_size/self.get_size())
-        res_image_array = np.empty((self.map_mat.shape[0] * unit_space_dim, self.map_mat.shape[1] * unit_space_dim, 3), dtype=np.uint8)
+        unit_space_dim = int(image_size / self.get_size())
+        res_image_array = np.empty((self.map_mat.shape[0] * unit_space_dim, self.map_mat.shape[1] * unit_space_dim, 3),
+                                   dtype=np.uint8)
         for i in range(self.map_mat.shape[0]):
             space_i = i * unit_space_dim
             for j in range(self.map_mat.shape[1]):
@@ -339,6 +342,11 @@ class Robot(Hmm):
                     value_color = 255 if self.map_mat[i, j] == 0 else 0
                     res_image_array[space_i + row, space_j:space_j + unit_space_dim, :] = value_color
         self.map_image = Image.fromarray(res_image_array)
+
+    def save_map_image(self, output_path):
+        if not hasattr(self, 'map_image') or self.map_image:
+            self.make_map_image()
+        return self.map_image.save(output_path, 'PNG')
 
     def display_map(self):
         if not hasattr(self, 'map_image') or self.map_image:

@@ -28,6 +28,8 @@ def main(args):
 
 
 def demo():
+    output_messages = []
+    output_file = _DEFAULT_OUTPUT_PATH + 'demo.txt'
     logging.info("Demonstration of use")
     size_x = 20
     obstacle_rate = 0.5
@@ -47,12 +49,25 @@ def demo():
     viterbi_estimate_seq = r.viterbi(sam_o)
     viterbi_error = r.viterbi_error(sam_s, viterbi_estimate_seq)
     r.display_map()
-    logging.info("State sequence:\t{}".format(sam_s))
-    logging.info("Observation sequence:\t{}".format(sam_o))
-    logging.info("Forward estimate state:\t{}".format(forward_estimated_state))
-    logging.info("Forward error:\t{}".format(forward_error))
-    logging.info("Viterbi estimate sequence:\t{}".format(viterbi_estimate_seq))
-    logging.info("Viterbi error:\t{}".format(viterbi_error))
+    output_messages.append("Map size:\t{}".format(size_x))
+    output_messages.append("Obstacle rate:\t{}".format(obstacle_rate))
+    output_messages.append("Observation error:\t{}".format(observation_error))
+    output_messages.append("Sample size:\t{}".format(sample_size))
+    output_messages.append("State sequence:\t{}".format(sam_s))
+    output_messages.append("Observation sequence:\t{}".format(sam_o))
+    output_messages.append("Forward estimate state:\t{}".format(forward_estimated_state))
+    output_messages.append("Forward error:\t{}".format(forward_error))
+    output_messages.append("Viterbi estimate sequence:\t{}".format(viterbi_estimate_seq))
+    output_messages.append("Viterbi error:\t{}".format(viterbi_error))
+    for msg in output_messages:
+        logging.info(msg)
+    try:
+        fd = open(output_file, 'w')
+        r.save_map_image(_DEFAULT_OUTPUT_PATH + 'demo_map.png')
+        fd.write("Demonstration of use" + "\n")
+        fd.write('\n'.join(output_messages) + '\n')
+    except ValueError as ex:
+        logging.warning("There was an error writing output file: {} \nException:\t{}".format(output_file, ex))
 
 
 def model_building_performance_test():
@@ -67,7 +82,7 @@ def model_building_performance_test():
     logging.debug("Model size vs building time")
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    logging.debug("Map size({})\ttime(s)")
+    logging.debug("Map size\ttime(s)")
     for size_x in range(3, 18):
         ti = time.time()
         r = Robot()
@@ -150,7 +165,7 @@ def algorithms_performance_test():
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
     plt.ylabel('Elapsed time (s)')
-    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Forward time performance.png')
+    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Time performance Forward.png')
     plt.clf()
 
     logging.debug("Viterbi time performance")
@@ -164,7 +179,7 @@ def algorithms_performance_test():
     r.make_b_mat()
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    logging.debug("State_sample({})\ttime(s)")
+    logging.debug("State_sample\ttime(s)")
     for sample_size in range(2, 17):
         sam_s, sam_o = r.generate_sample(sample_size)
         ti = time.time()
@@ -176,7 +191,7 @@ def algorithms_performance_test():
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
     plt.ylabel('Elapsed time (s)')
-    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Viterbi time performance.png')
+    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Time performance Viterbi.png')
     plt.clf()
 
     logging.debug("Forward performance")
@@ -190,15 +205,18 @@ def algorithms_performance_test():
     r.make_b_mat()
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    logging.debug("State_sample({})\terror rate")
-    for sample_size in range(2, 17):
+    logging.debug("State_sample\tdeviation")
+    for sample_size in range(10, 37):
         sam_s, sam_o = r.generate_sample(sample_size)
         forward_estmiated_state = r.forward(sam_o)
         forward_performance_test.append((sample_size, r.forward_error(sam_s[-1], forward_estmiated_state)))
         logging.debug("{}\t{}".format(sample_size, forward_performance_test[-1][1]))
     ax.plot(*zip(*forward_performance_test),
             label='Forward error')
-    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Forward performance.png')
+    ax.legend(loc='upper left')
+    plt.xlabel('State sequence length')
+    plt.ylabel('Deviation')
+    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Performance Forward.png')
 
     logging.debug("Viterbi performance")
     r = Robot()
@@ -211,7 +229,7 @@ def algorithms_performance_test():
     r.make_b_mat()
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    logging.debug("State_sample({})\terror")
+    logging.debug("State_sample\terror")
     for sample_size in range(2, 17):
         sam_s, sam_o = r.generate_sample(sample_size)
         viterbi_estimate_seq = r.viterbi(sam_o)
@@ -222,7 +240,7 @@ def algorithms_performance_test():
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
     plt.ylabel('Error')
-    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Viterbi performance.png')
+    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Performance Viterbi.png')
     plt.clf()
 
     logging.debug("Forward performance vs observation error")
@@ -233,19 +251,23 @@ def algorithms_performance_test():
     r.generate_map()
     r.make_a_mat()
     r.make_pi_v()
-    
+
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("Observation error\terror")
     for observation_error in range(20):
-        r.set_error(observation_error/200)
+        r.set_error(observation_error / 66)
         r.make_b_mat()
         sam_s, sam_o = r.generate_sample(sample_size)
         forward_estimated_state = r.forward(sam_o)
-        forward_performance_observation_error_test.append((observation_error/200, r.forward_error(sam_s[-1], forward_estimated_state)))
-        logging.debug("{}\t{}".format(observation_error/200, forward_performance_observation_error_test[-1][1]))
-    ax.plot(*zip(*forward_performance_observation_error_test),label='Forward error')
-    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Forward performance vs observation error.png')
+        forward_performance_observation_error_test.append(
+            (observation_error / 66, r.forward_error(sam_s[-1], forward_estimated_state)))
+        logging.debug("{}\t{}".format(observation_error / 66, forward_performance_observation_error_test[-1][1]))
+    ax.plot(*zip(*forward_performance_observation_error_test), label='Forward error vs observation error')
+    ax.legend(loc='upper left')
+    plt.xlabel('State sequence length')
+    plt.ylabel('Error')
+    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Performance Forward vs observation error.png')
 
     logging.debug("Viterbi performance vs observation error")
     sample_size = 15
@@ -259,19 +281,19 @@ def algorithms_performance_test():
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("Observation error\terror")
     for observation_error in range(20):
-        r.set_error(observation_error / 40)
+        r.set_error(observation_error / 66)
         r.make_b_mat()
         sam_s, sam_o = r.generate_sample(sample_size)
         viterbi_estimate_seq = r.viterbi(sam_o)
         viterbi_performance_observation_error_test.append(
-            (observation_error / 40, r.viterbi_error(sam_s, viterbi_estimate_seq)))
-        logging.debug("{}\t{}".format(observation_error / 40, viterbi_performance_observation_error_test[-1][1]))
+            (observation_error / 66, r.viterbi_error(sam_s, viterbi_estimate_seq)))
+        logging.debug("{}\t{}".format(observation_error / 66, viterbi_performance_observation_error_test[-1][1]))
     ax.plot(*zip(*viterbi_performance_observation_error_test),
             label='Viterbi error')
     ax.legend(loc='upper left')
     plt.xlabel('Observation error')
     plt.ylabel('Error')
-    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Viterbi performance vs observation error.png')
+    fig.savefig(_DEFAULT_OUTPUT_PATH + 'Performance Viterbi vs observation error.png')
     plt.clf()
 
 

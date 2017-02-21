@@ -214,6 +214,25 @@ class MyTestCase(unittest.TestCase):
                 state_transition_probability = r._get_state_transition_probability(sam_s[i + 1], sam_s[i])
                 self.assertTrue(0 < state_transition_probability <= 1)
 
+    def test_forward(self):
+        sample_size = 10
+        size_x = 20
+        obstacle_rate = 0.25
+        r = Robot()
+        r.set_size(size_x)
+        r.set_error(0.02)
+        r.set_obstacle_rate(obstacle_rate)
+        r.generate_map()
+        r.make_a_mat()
+        r.make_pi_v()
+        r.make_b_mat()
+        sam_s, sam_o = r.generate_sample(sample_size)
+        forward_s_state = r.forward(sam_o)
+        states_count = r.pi_v.size
+        self.assertTrue(0 <= forward_s_state < states_count,
+                        "Forward returns unknown state: {}".format(forward_s_state))
+        print("Error Forward: {}".format(r.forward_error(sam_s[-1],forward_s_state)))
+
     def test_viterbi(self):
         sample_size = 3
         size_x = 5
