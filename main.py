@@ -8,11 +8,12 @@ import time
 from Robot import Robot
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+import numpy as np
 
 __date__ = '2017.02.15'
 
 """
-T2 - Hidden Markov Model
+T2 - Hidden Markov Model Robot
 """
 
 _DEFAULT_OUTPUT_PATH = './Output/'
@@ -35,7 +36,7 @@ def demo():
     obstacle_rate = 0.5
     observation_error = 0.05
     sample_size = 15
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_obstacle_rate(obstacle_rate)
     r.set_error(observation_error)
@@ -85,7 +86,7 @@ def model_building_performance_test():
     logging.debug("Map size\ttime(s)")
     for size_x in range(3, 18):
         ti = time.time()
-        r = Robot()
+        r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
         r.set_size(size_x)
         r.set_obstacle_rate(obstacle_rate)
         r.set_error(observation_error)
@@ -104,7 +105,7 @@ def model_building_performance_test():
     plt.clf()
 
     logging.debug("Sample size vs generation time")
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_error(observation_error)
     r.set_obstacle_rate(obstacle_rate)
@@ -131,19 +132,14 @@ def model_building_performance_test():
 
 def algorithms_performance_test():
     logging.info("Algorithms performance test")
-    size_x = 17
-    obstacle_rate = 0.5
+    size_x = 15
+    obstacle_rate = 0.3
     observation_error = 0.05
 
-    forward_performance_time_test = []
-    viterbi_performance_time_test = []
-    forward_performance_test = []
-    viterbi_performance_test = []
-    forward_performance_observation_error_test = []
-    viterbi_performance_observation_error_test = []
+    iterations = 2
 
     logging.debug("Forward time performance")
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_error(observation_error)
     r.set_obstacle_rate(obstacle_rate)
@@ -154,13 +150,18 @@ def algorithms_performance_test():
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("State_sample({})\ttime(s)")
-    for sample_size in range(2, 17):
-        sam_s, sam_o = r.generate_sample(sample_size)
-        ti = time.time()
-        r.forward(sam_o)
-        forward_performance_time_test.append((sample_size, time.time() - ti))
-        logging.debug("{}\t{}".format(sample_size, forward_performance_time_test[-1][1]))
-    ax.plot(*zip(*forward_performance_time_test),
+    results = []
+    for t in range(iterations):
+        forward_performance_time_test = []
+        for sample_size in range(2, 17):
+            sam_s, sam_o = r.generate_sample(sample_size)
+            ti = time.time()
+            r.forward(sam_o)
+            forward_performance_time_test.append(time.time() - ti)
+            logging.debug("{0}\t{1:.2f}".format(sample_size, forward_performance_time_test[-1]))
+        results.append(forward_performance_time_test)
+    forward_performance_time_test = np.mean(results, axis=0)
+    ax.plot(range(2, 17), forward_performance_time_test,
             label='Forward execution time')
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
@@ -169,7 +170,7 @@ def algorithms_performance_test():
     plt.clf()
 
     logging.debug("Viterbi time performance")
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_error(observation_error)
     r.set_obstacle_rate(obstacle_rate)
@@ -180,13 +181,19 @@ def algorithms_performance_test():
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("State_sample\ttime(s)")
-    for sample_size in range(2, 17):
-        sam_s, sam_o = r.generate_sample(sample_size)
-        ti = time.time()
-        r.viterbi(sam_o)
-        viterbi_performance_time_test.append((sample_size, time.time() - ti))
-        logging.debug("{}\t{}".format(sample_size, viterbi_performance_time_test[-1][1]))
-    ax.plot(*zip(*forward_performance_time_test),
+    results = []
+    for t in range(iterations):
+        viterbi_performance_time_test = []
+        for sample_size in range(2, 17):
+            sam_s, sam_o = r.generate_sample(sample_size)
+            ti = time.time()
+            r.viterbi(sam_o)
+            viterbi_performance_time_test.append(time.time() - ti)
+            logging.debug("{0}\t{1:.2f}".format(sample_size, viterbi_performance_time_test[-1]))
+        results.append(viterbi_performance_time_test)
+    viterbi_performance_time_test = np.mean(results, axis=0)
+
+    ax.plot(range(2, 17), viterbi_performance_time_test,
             label='Viterbi execution time')
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
@@ -195,7 +202,7 @@ def algorithms_performance_test():
     plt.clf()
 
     logging.debug("Forward performance")
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_error(observation_error)
     r.set_obstacle_rate(obstacle_rate)
@@ -206,12 +213,18 @@ def algorithms_performance_test():
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("State_sample\tdeviation")
-    for sample_size in range(10, 37):
-        sam_s, sam_o = r.generate_sample(sample_size)
-        forward_estmiated_state = r.forward(sam_o)
-        forward_performance_test.append((sample_size, r.forward_error(sam_s[-1], forward_estmiated_state)))
-        logging.debug("{}\t{}".format(sample_size, forward_performance_test[-1][1]))
-    ax.plot(*zip(*forward_performance_test),
+    results = []
+    for t in range(iterations):
+        logging.debug("Iteration:\t{}".format(t))
+        forward_performance_test = []
+        for sample_size in range(10, 37):
+            sam_s, sam_o = r.generate_sample(sample_size)
+            forward_estimated_state = r.forward(sam_o)
+            forward_performance_test.append(r.forward_error(sam_s[-1], forward_estimated_state))
+            logging.debug("{}\t{}".format(sample_size, forward_performance_test[-1]))
+        results.append(forward_performance_test)
+    forward_performance_test = np.mean(results, axis=0)
+    ax.plot(range(10, 37), forward_performance_test,
             label='Forward error')
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
@@ -219,7 +232,7 @@ def algorithms_performance_test():
     fig.savefig(_DEFAULT_OUTPUT_PATH + 'Performance Forward.png')
 
     logging.debug("Viterbi performance")
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_error(observation_error)
     r.set_obstacle_rate(obstacle_rate)
@@ -230,12 +243,18 @@ def algorithms_performance_test():
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("State_sample\terror")
-    for sample_size in range(2, 17):
-        sam_s, sam_o = r.generate_sample(sample_size)
-        viterbi_estimate_seq = r.viterbi(sam_o)
-        viterbi_performance_test.append((sample_size, r.viterbi_error(sam_s, viterbi_estimate_seq)))
-        logging.debug("{}\t{}".format(sample_size, viterbi_performance_test[-1][1]))
-    ax.plot(*zip(*viterbi_performance_test),
+    results = []
+    for t in range(iterations):
+        logging.debug("Iteration:\t{}".format(t))
+        viterbi_performance_test = []
+        for sample_size in range(9, 37):
+            sam_s, sam_o = r.generate_sample(sample_size)
+            viterbi_estimate_seq = r.viterbi(sam_o)
+            viterbi_performance_test.append(r.viterbi_error(sam_s, viterbi_estimate_seq))
+            logging.debug("{}\t{}".format(sample_size, viterbi_performance_test[-1]))
+        results.append(viterbi_performance_test)
+    viterbi_performance_test = np.mean(results, axis=0)
+    ax.plot(range(9, 37), viterbi_performance_test,
             label='Viterbi error')
     ax.legend(loc='upper left')
     plt.xlabel('State sequence length')
@@ -245,7 +264,7 @@ def algorithms_performance_test():
 
     logging.debug("Forward performance vs observation error")
     sample_size = 15
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_obstacle_rate(obstacle_rate)
     r.generate_map()
@@ -255,23 +274,29 @@ def algorithms_performance_test():
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("Observation error\terror")
-    for observation_error in range(20):
-        r.set_error(observation_error / 66)
-        r.make_b_mat()
-        sam_s, sam_o = r.generate_sample(sample_size)
-        forward_estimated_state = r.forward(sam_o)
-        forward_performance_observation_error_test.append(
-            (observation_error / 66, r.forward_error(sam_s[-1], forward_estimated_state)))
-        logging.debug("{}\t{}".format(observation_error / 66, forward_performance_observation_error_test[-1][1]))
-    ax.plot(*zip(*forward_performance_observation_error_test), label='Forward error vs observation error')
+    results = []
+    for t in range(iterations):
+        logging.debug("Iteration:\t{}".format(t))
+        forward_performance_observation_error_test = []
+        for observation_error in np.arange(0, .3, 0.01):
+            r.set_error(observation_error)
+            r.make_b_mat()
+            sam_s, sam_o = r.generate_sample(sample_size)
+            forward_estimated_state = r.forward(sam_o)
+            forward_performance_observation_error_test.append(r.forward_error(sam_s[-1], forward_estimated_state))
+            logging.debug("{}\t{}".format(observation_error, forward_performance_observation_error_test[-1]))
+        results.append(forward_performance_observation_error_test)
+    forward_performance_observation_error_test = np.mean(results, axis=0)
+    ax.plot(np.arange(0, .3, 0.01), forward_performance_observation_error_test,
+            label='Forward error vs observation error')
     ax.legend(loc='upper left')
-    plt.xlabel('State sequence length')
-    plt.ylabel('Error')
+    plt.xlabel('Observation error')
+    plt.ylabel('Deviation')
     fig.savefig(_DEFAULT_OUTPUT_PATH + 'Performance Forward vs observation error.png')
 
     logging.debug("Viterbi performance vs observation error")
     sample_size = 15
-    r = Robot()
+    r = Robot(map_size=size_x, obstacle_rate=obstacle_rate, observation_error=observation_error)
     r.set_size(size_x)
     r.set_obstacle_rate(obstacle_rate)
     r.generate_map()
@@ -280,16 +305,21 @@ def algorithms_performance_test():
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     logging.debug("Observation error\terror")
-    for observation_error in range(20):
-        r.set_error(observation_error / 66)
-        r.make_b_mat()
-        sam_s, sam_o = r.generate_sample(sample_size)
-        viterbi_estimate_seq = r.viterbi(sam_o)
-        viterbi_performance_observation_error_test.append(
-            (observation_error / 66, r.viterbi_error(sam_s, viterbi_estimate_seq)))
-        logging.debug("{}\t{}".format(observation_error / 66, viterbi_performance_observation_error_test[-1][1]))
-    ax.plot(*zip(*viterbi_performance_observation_error_test),
-            label='Viterbi error')
+    results = []
+    for t in range(iterations):
+        logging.debug("Iteration:\t{}".format(t))
+        viterbi_performance_observation_error_test = []
+        for observation_error in np.arange(0, .3, 0.01):
+            r.set_error(observation_error)
+            r.make_b_mat()
+            sam_s, sam_o = r.generate_sample(sample_size)
+            viterbi_estimate_seq = r.viterbi(sam_o)
+            viterbi_performance_observation_error_test.append(r.viterbi_error(sam_s, viterbi_estimate_seq))
+            logging.debug("{}\t{}".format(observation_error, viterbi_performance_observation_error_test[-1]))
+        results.append(viterbi_performance_observation_error_test)
+    viterbi_performance_observation_error_test = np.mean(results, axis=0)
+    ax.plot(np.arange(0, .3, 0.01), viterbi_performance_observation_error_test,
+            label='Viterbi error vs observation error')
     ax.legend(loc='upper left')
     plt.xlabel('Observation error')
     plt.ylabel('Error')
